@@ -1,41 +1,195 @@
-import { getNextJob } from "./queue.js";
-import { pool } from "../db/index.js";
-import { getIO } from "../socket.js";
+# 🍽️ Real-Time Restaurant Order System
 
-export const startWorker = (workerId) => {
-  console.log(`👨‍🍳 Worker ${workerId} started...`);
+A full-stack restaurant order system built with **Node.js, PostgreSQL, React (Vite)** featuring **real-time order tracking, background workers, and rate limiting**.
 
-  const processQueue = async () => {
-    const job = getNextJob();
+---
 
-    if (job) {
-      const { orderId } = job;
-      const io = getIO();
+## 🚀 Features
 
-      console.log(`👨‍🍳 Worker ${workerId} cooking order: ${orderId}`);
+* 🔐 **Authentication**
 
-      // 🔥 FIX: convert to string
-      io.to(String(orderId)).emit("orderUpdate", {
-        status: "cooking",
-      });
+  * JWT-based login & registration
+  * Protected routes
 
-      await new Promise((res) => setTimeout(res, 5000));
+* 🛒 **Order System**
 
-      await pool.query(
-        "UPDATE orders SET status = 'ready' WHERE id = $1",
-        [orderId]
-      );
+  * Place orders with multiple items
+  * Order status lifecycle: `pending → cooking → ready`
 
-      console.log(`✅ Worker ${workerId} finished order: ${orderId}`);
+* ⚙️ **Async Processing**
 
-      // 🔥 FIX: convert to string
-      io.to(String(orderId)).emit("orderUpdate", {
-        status: "ready",
-      });
-    }
+  * Custom in-memory queue
+  * Background workers (kitchen simulation)
+  * Multiple workers for parallel processing (load balancing concept)
 
-    setTimeout(processQueue, 1000);
-  };
+* ⚡ **Real-Time Updates**
 
-  processQueue();
-};
+  * WebSockets using Socket.IO
+  * Instant status updates without polling
+
+* 🚦 **Rate Limiting**
+
+  * Prevents spam orders (max requests per minute)
+
+---
+
+## 🧠 System Architecture
+
+```
+Frontend (React)
+        ↓
+Backend API (Express)
+        ↓
+Queue (in-memory)
+        ↓
+Workers (multiple)
+        ↓
+PostgreSQL DB
+        ↓
+WebSocket (real-time updates)
+        ↓
+Frontend (live tracking)
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+
+* Node.js
+* Express
+* PostgreSQL
+* JWT Authentication
+* Socket.IO
+
+### Frontend
+
+* React (Vite)
+* React Router
+* Axios
+
+---
+
+## 📂 Project Structure
+
+```
+server/
+├── index.js
+├── socket.js
+├── db/
+├── routes/
+├── controllers/
+├── middleware/
+├── queue/
+│   ├── queue.js
+│   └── worker.js
+
+client/
+├── src/
+│   ├── pages/
+│   ├── components/
+│   ├── api/
+│   └── socket.js
+```
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone the repo
+
+```
+git clone <your-repo-url>
+cd project
+```
+
+### 2. Backend setup
+
+```
+cd server
+npm install
+```
+
+Create `.env` file:
+
+```
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=restaurant_db
+DB_PASSWORD=your_password
+DB_PORT=5432
+
+JWT_SECRET=your_secret
+JWT_EXPIRES_IN=1d
+
+PORT=5000
+```
+
+Run server:
+
+```
+npm run dev
+```
+
+---
+
+### 3. Frontend setup
+
+```
+cd client
+npm install
+npm run dev
+```
+
+---
+
+## 🔥 How It Works
+
+1. User places an order
+2. Order is stored in DB and pushed to queue
+3. Worker picks order and processes it
+4. Status updates (`cooking`, `ready`)
+5. WebSocket sends updates to frontend instantly
+
+---
+
+## 📌 API Endpoints
+
+### Auth
+
+* `POST /api/auth/register`
+* `POST /api/auth/login`
+
+### Orders
+
+* `POST /api/orders`
+* `GET /api/orders/:id`
+
+---
+
+## 🚧 Future Improvements
+
+* Redis for caching and queue
+* WebSocket scaling
+* Admin dashboard
+* Order history
+* Image upload (S3)
+
+---
+
+## 💡 Learnings
+
+* Event-driven architecture
+* Real-time systems using WebSockets
+* Background job processing
+* Rate limiting strategies
+* Full-stack system design
+
+---
+
+## 👨‍💻 Author
+
+**Priyank Garala**
+
+---
